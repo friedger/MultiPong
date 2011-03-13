@@ -27,7 +27,7 @@ public class PongActivity extends Activity implements Runnable {
 
 	private static final String TAG = "PongActivity";
 
-	// private static final int MESSAGE_ACTION = 1;
+	private static final int MESSAGE_DISPLAY_HELLO = 1;
 	private static final int MESSAGE_POST_TOAST = 2;
 
 	private ServiceBusHandler mServiceBusHandler;
@@ -35,6 +35,7 @@ public class PongActivity extends Activity implements Runnable {
 	private Menu menu;
 	private Thread mThread;
 	private volatile boolean mStopped;
+	private boolean mFound;
 
 	/* UI Handler */
 	public Handler mHandler = new Handler() {
@@ -45,6 +46,11 @@ public class PongActivity extends Activity implements Runnable {
 			 * case MESSAGE_ACTION: { mListViewArrayAdapter.add((String)
 			 * msg.obj); break; }
 			 */
+			case MESSAGE_DISPLAY_HELLO:
+				Log.i(TAG, (String) msg.obj);
+				Toast.makeText(getApplicationContext(), (String) msg.obj,
+						Toast.LENGTH_SHORT).show();
+				break;
 			case MESSAGE_POST_TOAST:
 				Toast.makeText(getApplicationContext(), (String) msg.obj,
 						Toast.LENGTH_LONG).show();
@@ -103,20 +109,32 @@ public class PongActivity extends Activity implements Runnable {
 		 * Make all AllJoyn calls through a separate handler thread to prevent
 		 * blocking the UI.
 		 */
-		HandlerThread serviceBusThread = new HandlerThread("ServiceBusHandler");
-		serviceBusThread.start();
-		mServiceBusHandler = new ServiceBusHandler(serviceBusThread.getLooper());
 		HandlerThread clientBusThread = new HandlerThread("ClientBusHandler");
 		clientBusThread.start();
 		mClientBusHandler = new ClientBusHandler(clientBusThread.getLooper());
-
-		/* Start our service. */
-		mServiceBusHandler.sendEmptyMessage(ServiceBusHandler.CONNECT);
 
 		/* Start the client. */
 		mClientBusHandler.sendEmptyMessage(ServiceBusHandler.CONNECT);
 
 		start();
+
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		if (!mFound) {
+			HandlerThread serviceBusThread = new HandlerThread(
+					"ServiceBusHandler");
+			serviceBusThread.start();
+			mServiceBusHandler = new ServiceBusHandler(
+					serviceBusThread.getLooper());
+
+			/* Start our service. */
+			mServiceBusHandler.sendEmptyMessage(ServiceBusHandler.CONNECT);
+		}
 	}
 
 	@Override
@@ -177,14 +195,14 @@ public class PongActivity extends Activity implements Runnable {
 																// devices.
 
 				Status status = mBus.registerBusObject(mService, "/");
-				logStatus("BusAttachment.registerBusObject()", status);
+				logStatus("S BusAttachment.registerBusObject()", status);
 				if (status != Status.OK) {
 					finish();
 					return;
 				}
 
 				status = mBus.connect(SERVICE_NAME);
-				logStatus("BusAttachment.connect()", status);
+				logStatus("S BusAttachment.connect()", status);
 				if (status != Status.OK) {
 					finish();
 					return;
@@ -223,7 +241,7 @@ public class PongActivity extends Activity implements Runnable {
 																// devices.
 
 				Status status = mBus.connect();
-				logStatus("BusAttachment.connect()", status);
+				logStatus("C BusAttachment.connect()", status);
 				if (status != Status.OK) {
 					finish();
 					return;
@@ -238,26 +256,29 @@ public class PongActivity extends Activity implements Runnable {
 
 				status = mBus.findName(ServiceBusHandler.SERVICE_NAME,
 						new FindNameListener() {
+
 							public void foundName(String name, String guid,
 									String namePrefix, String busAddress) {
 
 								Status status = mProxyObj.connect(busAddress);
-								logStatus("ProxyBusObject.connect()", status);
+								logStatus("C ProxyBusObject.connect()", status);
 								if (status != Status.OK) {
 									finish();
 									return;
 								}
 
+								mFound = true;
+
 								// We're only looking for one instance, so stop
 								// looking
 								// for the name.//TODO
-								mBus.cancelFindName(ServiceBusHandler.SERVICE_NAME);
-								logStatus("BusAttachment.cancelFindName()",
-										status);
-								if (status != Status.OK) {
-									finish();
-									return;
-								}
+								/*
+								 * mBus.cancelFindName(ServiceBusHandler.
+								 * SERVICE_NAME);
+								 * logStatus("BusAttachment.cancelFindName()",
+								 * status); if (status != Status.OK) { finish();
+								 * return; }
+								 */
 							}
 
 							public void lostAdvertisedName(String name,
@@ -266,7 +287,7 @@ public class PongActivity extends Activity implements Runnable {
 								// TODO
 							}
 						});
-				logStatus("BusAttachment.findName()", status);
+				logStatus("C BusAttachment.findName()", status);
 				if (status != Status.OK) {
 					finish();
 					return;
@@ -281,9 +302,12 @@ public class PongActivity extends Activity implements Runnable {
 			}
 			case ServiceBusHandler.HELLO: {
 				try {
-					mPongServiceInterface.Hello();
+					String reply = mPongServiceInterface.Hello();
+					Message replyMsg = mHandler.obtainMessage(
+							MESSAGE_DISPLAY_HELLO, reply);
+					mHandler.sendMessage(replyMsg);
 				} catch (BusException ex) {
-					logException("PongServiceInterface.Hello()", ex);
+					logException("C PongServiceInterface.Hello()", ex);
 				}
 				break;
 			}

@@ -3,6 +3,7 @@ package org.bedroid.multipong.service;
 import org.alljoyn.bus.BusException;
 import org.alljoyn.bus.BusObject;
 
+import android.os.Build;
 import android.util.Log;
 
 /**
@@ -14,7 +15,8 @@ import android.util.Log;
 public class PongService implements PongServiceInterface, BusObject {
 	private static final String TAG = "PongService";
 
-	public void Hello() throws BusException {
-		Log.i(TAG, "HELLOOOOOOOOOO");
+	public String Hello() throws BusException {
+		Log.i(TAG, "LOCAAAAAAAL " + Build.VERSION.SDK_INT);
+		return "HELLOOOOOOO " + Build.VERSION.SDK_INT;
 	}
 }

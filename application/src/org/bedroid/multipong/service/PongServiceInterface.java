@@ -17,6 +17,6 @@ public interface PongServiceInterface {
 	 */
 
 	@BusMethod
-	public void Hello() throws BusException;
+	public String Hello() throws BusException;
 
 }
