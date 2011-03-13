@@ -12,8 +12,6 @@ public interface PongServiceInterface {
 	 * @BusSignal public void Leave() throws BusException;
 	 * 
 	 * @BusMethod public Config GetConfig() throws BusException;
-	 * 
-	 * @BusSignal public void Pong(int direction) throws BusException;
 	 */
 
 	@BusMethod

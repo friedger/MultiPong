@@ -4,9 +4,11 @@ import org.alljoyn.bus.BusAttachment;
 import org.alljoyn.bus.BusException;
 import org.alljoyn.bus.FindNameListener;
 import org.alljoyn.bus.ProxyBusObject;
+import org.alljoyn.bus.SignalEmitter;
 import org.alljoyn.bus.Status;
 import org.bedroid.multipong.service.PongService;
 import org.bedroid.multipong.service.PongServiceInterface;
+import org.bedroid.multipong.service.PongSignalInterface;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -36,6 +38,7 @@ public class PongActivity extends Activity implements Runnable {
 	private Thread mThread;
 	private volatile boolean mStopped;
 	private boolean mFound;
+	public PongService mService = new PongService();
 
 	/* UI Handler */
 	public Handler mHandler = new Handler() {
@@ -60,6 +63,8 @@ public class PongActivity extends Activity implements Runnable {
 			}
 		}
 	};
+
+	public PongSignalInterface mPongSignalInterface;
 
 	/*
 	 * (non-Javadoc)
@@ -172,7 +177,6 @@ public class PongActivity extends Activity implements Runnable {
 		private static final String SERVICE_NAME = "org.bedroid.multipong.service";
 
 		BusAttachment mBus;
-		private PongService mService;
 
 		/* These are the messages sent to the BusHandler from the UI. */
 		public static final int CONNECT = 1;
@@ -207,6 +211,7 @@ public class PongActivity extends Activity implements Runnable {
 					finish();
 					return;
 				}
+
 				break;
 			}
 			case DISCONNECT: {
@@ -239,6 +244,9 @@ public class PongActivity extends Activity implements Runnable {
 						BusAttachment.RemoteMessage.Receive);// Receives from
 																// remote
 																// devices.
+
+				PongSignal mSignalInterface = new PongSignal();
+				mBus.registerBusObject(mSignalInterface, "/pongsignal");
 
 				Status status = mBus.connect();
 				logStatus("C BusAttachment.connect()", status);
@@ -288,11 +296,20 @@ public class PongActivity extends Activity implements Runnable {
 							}
 						});
 				logStatus("C BusAttachment.findName()", status);
+
 				if (status != Status.OK) {
 					finish();
 					return;
 				}
 
+				// setup emitter
+				SignalEmitter emitter = new SignalEmitter(mSignalInterface,
+						SignalEmitter.GlobalBroadcast.On);
+				mPongSignalInterface = emitter
+						.getInterface(PongSignalInterface.class);
+
+				// register signal handlers
+				mBus.registerSignalHandlers(mService);
 				break;
 			}
 			case ServiceBusHandler.DISCONNECT: {
@@ -301,8 +318,12 @@ public class PongActivity extends Activity implements Runnable {
 				getLooper().quit();
 				break;
 			}
+
 			case ServiceBusHandler.HELLO: {
 				try {
+
+					mPongSignalInterface.Move(5);
+
 					String reply = mPongServiceInterface.Hello();
 					Message replyMsg = mHandler.obtainMessage(
 							MESSAGE_DISPLAY_HELLO, reply);
