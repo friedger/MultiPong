@@ -126,17 +126,6 @@ public class PongActivity extends Activity implements Runnable {
 
 		start();
 
-		try {
-			Thread.sleep(5000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		if (!mFound) {
-			/* Start our service. */
-			mServiceBusHandler.sendEmptyMessage(ServiceBusHandler.CONNECT);
-		}
 	}
 
 	@Override
@@ -153,6 +142,12 @@ public class PongActivity extends Activity implements Runnable {
 		switch (item.getItemId()) {
 		case R.id.quit:
 			finish();
+			return true;
+		case R.id.new_game:
+			if (!mFound) {
+				/* Start our service. */
+				mServiceBusHandler.sendEmptyMessage(ServiceBusHandler.CONNECT);
+			}
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);

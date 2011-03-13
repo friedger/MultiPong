@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu
-  xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-<item android:title="Quit" android:id="@+id/quit"></item>
+	<item android:title="Quit" android:id="@+id/quit"></item>
+	<item android:title="Start Game" android:id="@+id/new_game"></item>
 </menu>
