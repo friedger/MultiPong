@@ -2,7 +2,6 @@ package org.bedroid.multipong.service;
 
 import org.alljoyn.bus.BusException;
 import org.alljoyn.bus.BusObject;
-import org.alljoyn.bus.annotation.BusSignalHandler;
 
 import android.os.Build;
 import android.util.Log;
@@ -22,12 +21,6 @@ public class PongService implements PongServiceInterface, BusObject {
 	}
 
 	public void Move(int direction) throws BusException {
-
-	}
-
-	@BusSignalHandler(iface = "org.bedroid.multipong.signal", signal = "Move")
-	public void MoveReceived(int direction) {
-		Log.i(TAG, "Signal received " + direction);
 
 	}
 }

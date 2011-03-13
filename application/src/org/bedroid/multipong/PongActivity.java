@@ -8,6 +8,7 @@ import org.alljoyn.bus.SignalEmitter;
 import org.alljoyn.bus.Status;
 import org.bedroid.multipong.service.PongService;
 import org.bedroid.multipong.service.PongServiceInterface;
+import org.bedroid.multipong.service.PongSignal;
 import org.bedroid.multipong.service.PongSignalInterface;
 
 import android.app.Activity;
@@ -117,6 +118,9 @@ public class PongActivity extends Activity implements Runnable {
 		HandlerThread clientBusThread = new HandlerThread("ClientBusHandler");
 		clientBusThread.start();
 		mClientBusHandler = new ClientBusHandler(clientBusThread.getLooper());
+		HandlerThread serviceBusThread = new HandlerThread("ServiceBusHandler");
+		serviceBusThread.start();
+		mServiceBusHandler = new ServiceBusHandler(serviceBusThread.getLooper());
 
 		/* Start the client. */
 		mClientBusHandler.sendEmptyMessage(ServiceBusHandler.CONNECT);
@@ -131,11 +135,6 @@ public class PongActivity extends Activity implements Runnable {
 		}
 
 		if (!mFound) {
-			HandlerThread serviceBusThread = new HandlerThread(
-					"ServiceBusHandler");
-			serviceBusThread.start();
-			mServiceBusHandler = new ServiceBusHandler(
-					serviceBusThread.getLooper());
 
 			/* Start our service. */
 			mServiceBusHandler.sendEmptyMessage(ServiceBusHandler.CONNECT);
@@ -309,7 +308,7 @@ public class PongActivity extends Activity implements Runnable {
 						.getInterface(PongSignalInterface.class);
 
 				// register signal handlers
-				mBus.registerSignalHandlers(mService);
+				mBus.registerSignalHandlers(mSignalInterface);
 				break;
 			}
 			case ServiceBusHandler.DISCONNECT: {
