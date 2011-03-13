@@ -35,7 +35,7 @@ public class PongActivity extends Activity implements Runnable {
 	public static final int MESSAGE_MOVE_RECEIVED = 3;
 
 	private ServiceBusHandler mServiceBusHandler;
-	private ClientBusHandler mClientBusHandler;
+	protected ClientBusHandler mClientBusHandler;
 	private Menu menu;
 	private Thread mThread;
 	private volatile boolean mStopped;
@@ -189,6 +189,7 @@ public class PongActivity extends Activity implements Runnable {
 		public static final int DISCONNECT = 2;
 		public static final int HELLO = 3;
 		public static final int START_MOVE = 4;
+		public static final int MOVE = 5;
 
 		public ServiceBusHandler(Looper looper) {
 			super(looper);
@@ -340,10 +341,18 @@ public class PongActivity extends Activity implements Runnable {
 
 			case ServiceBusHandler.START_MOVE: {
 				try {
-
 					mPongSignalInterface.Move(PongView.INITIAL_BALL_MOVE);
 				} catch (BusException ex) {
-					logException("C PongServiceInterface.Hello()", ex);
+					logException("C PongSignalInterface.start_move()", ex);
+				}
+				break;
+			}
+
+			case ServiceBusHandler.MOVE: {
+				try {
+					mPongSignalInterface.Move((BallMove) msg.obj);
+				} catch (BusException ex) {
+					logException("C PongSignalInterface.move()", ex);
 				}
 				break;
 			}

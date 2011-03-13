@@ -4,6 +4,8 @@ import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.bedroid.multipong.PongActivity.ServiceBusHandler;
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -11,6 +13,7 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Handler;
+import android.os.Message;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -146,7 +149,17 @@ public class PongView extends View {
 		int localAngle = getLocalAngle();
 		int outgoingAngle = 180 - localAngle;
 		Point origin = new Point((int) ballX, (int) ballY);
+
+		// this is tricky, will continue and calculate again? if we do not
+		// override here already, even while we would still get broadcast
+		// ourselves.
 		incomingMove = new BallMove(origin, outgoingAngle, paddleId);
+
+		PongActivity.ClientBusHandler networkHandler = ((PongActivity) getContext()).mClientBusHandler;
+		Message msg = networkHandler.obtainMessage(ServiceBusHandler.MOVE,
+				incomingMove);
+		networkHandler.sendMessage(msg);
+
 	}
 
 	private static enum Direction {
