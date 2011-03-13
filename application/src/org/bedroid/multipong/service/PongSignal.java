@@ -36,7 +36,8 @@ public class PongSignal implements PongSignalInterface, BusObject {
 
 	@BusSignalHandler(iface = "org.bedroid.multipong.signal", signal = "Move")
 	public void MoveReceived(BallMove ballMove) {
-		Message msg = handler.obtainMessage(PongActivity.MESSAGE_MOVE_RECEIVED);
+		Message msg = handler.obtainMessage(PongActivity.MESSAGE_MOVE_RECEIVED,
+				ballMove);
 		handler.sendMessage(msg);
 	}
 

@@ -61,7 +61,7 @@ public class PongActivity extends Activity implements Runnable {
 						Toast.LENGTH_LONG).show();
 				break;
 			case MESSAGE_MOVE_RECEIVED:
-				mPongView.incomingMove = (BallMove) msg.obj;
+				mPongView.setIncomingMove((BallMove) msg.obj);
 				break;
 			default:
 				break;

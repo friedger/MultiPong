@@ -18,7 +18,8 @@ import android.view.View;
 
 public class PongView extends View {
 
-	public static final BallMove INITIAL_BALL_MOVE = new BallMove(new Point(0, 0), 120, 2);
+	public static final BallMove INITIAL_BALL_MOVE = new BallMove(new Point(0,
+			0), 120, 2);
 	private static final int BALL_RADIUS = 5;
 	private static final int PADDLE_WIDTH_HALF = 50;
 	private float paddleX = -1;
