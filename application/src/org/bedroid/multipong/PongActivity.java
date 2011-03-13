@@ -328,9 +328,6 @@ public class PongActivity extends Activity implements Runnable {
 
 			case ServiceBusHandler.HELLO: {
 				try {
-
-					mPongSignalInterface.Move(PongView.INITIAL_BALL_MOVE);
-
 					String reply = mPongServiceInterface.Hello();
 					Message replyMsg = mHandler.obtainMessage(
 							MESSAGE_DISPLAY_HELLO, reply);
