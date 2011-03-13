@@ -2,7 +2,7 @@ package org.bedroid.multipong.service;
 
 import org.alljoyn.bus.BusException;
 import org.alljoyn.bus.annotation.BusInterface;
-import org.alljoyn.bus.annotation.BusSignal;
+import org.alljoyn.bus.annotation.BusMethod;
 
 @BusInterface(name = "org.bedroid.multipong.service")
 public interface PongServiceInterface {
@@ -16,7 +16,7 @@ public interface PongServiceInterface {
 	 * @BusSignal public void Pong(int direction) throws BusException;
 	 */
 
-	@BusSignal
+	@BusMethod
 	public void Hello() throws BusException;
 
 }

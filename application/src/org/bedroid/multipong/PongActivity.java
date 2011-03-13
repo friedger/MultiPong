@@ -30,7 +30,8 @@ public class PongActivity extends Activity implements Runnable {
 	// private static final int MESSAGE_ACTION = 1;
 	private static final int MESSAGE_POST_TOAST = 2;
 
-	private BusHandler mBusHandler;
+	private ServiceBusHandler mServiceBusHandler;
+	private ClientBusHandler mClientBusHandler;
 	private Menu menu;
 	private Thread mThread;
 	private volatile boolean mStopped;
@@ -63,8 +64,9 @@ public class PongActivity extends Activity implements Runnable {
 		while (!mStopped) {
 			try {
 				// Send Hello
-				Message msg = mBusHandler.obtainMessage(BusHandler.HELLO);
-				mBusHandler.sendMessage(msg);
+				Message msg = mClientBusHandler
+						.obtainMessage(ServiceBusHandler.HELLO);
+				mClientBusHandler.sendMessage(msg);
 				// Wait a bit
 				Thread.sleep(5000);
 			} catch (InterruptedException e) {
@@ -101,12 +103,18 @@ public class PongActivity extends Activity implements Runnable {
 		 * Make all AllJoyn calls through a separate handler thread to prevent
 		 * blocking the UI.
 		 */
-		HandlerThread busThread = new HandlerThread("BusHandler");
-		busThread.start();
-		mBusHandler = new BusHandler(busThread.getLooper());
+		HandlerThread serviceBusThread = new HandlerThread("ServiceBusHandler");
+		serviceBusThread.start();
+		mServiceBusHandler = new ServiceBusHandler(serviceBusThread.getLooper());
+		HandlerThread clientBusThread = new HandlerThread("ClientBusHandler");
+		clientBusThread.start();
+		mClientBusHandler = new ClientBusHandler(clientBusThread.getLooper());
 
 		/* Start our service. */
-		mBusHandler.sendEmptyMessage(BusHandler.CONNECT);
+		mServiceBusHandler.sendEmptyMessage(ServiceBusHandler.CONNECT);
+
+		/* Start the client. */
+		mClientBusHandler.sendEmptyMessage(ServiceBusHandler.CONNECT);
 
 		start();
 	}
@@ -138,23 +146,22 @@ public class PongActivity extends Activity implements Runnable {
 
 		stop();
 
-		mBusHandler.sendEmptyMessage(BusHandler.DISCONNECT);
+		mClientBusHandler.sendEmptyMessage(ServiceBusHandler.DISCONNECT);
+		mServiceBusHandler.sendEmptyMessage(ServiceBusHandler.DISCONNECT);
 	}
 
-	class BusHandler extends Handler {
+	class ServiceBusHandler extends Handler {
 		private static final String SERVICE_NAME = "org.bedroid.multipong.service";
 
 		BusAttachment mBus;
-		private ProxyBusObject mProxyObj;
 		private PongService mService;
-		private PongServiceInterface mPongServiceInterface;
 
 		/* These are the messages sent to the BusHandler from the UI. */
 		public static final int CONNECT = 1;
 		public static final int DISCONNECT = 2;
 		public static final int HELLO = 3;
 
-		public BusHandler(Looper looper) {
+		public ServiceBusHandler(Looper looper) {
 			super(looper);
 
 			mService = new PongService();
@@ -169,19 +176,67 @@ public class PongActivity extends Activity implements Runnable {
 																// remote
 																// devices.
 
-				/*
-				 * Status status = mBus.connect();
-				 * logStatus("BusAttachment.connect()", status); if (status !=
-				 * Status.OK) { finish(); return; }
-				 */
+				Status status = mBus.registerBusObject(mService, "/");
+				logStatus("BusAttachment.registerBusObject()", status);
+				if (status != Status.OK) {
+					finish();
+					return;
+				}
+
+				status = mBus.connect(SERVICE_NAME);
+				logStatus("BusAttachment.connect()", status);
+				if (status != Status.OK) {
+					finish();
+					return;
+				}
+				break;
+			}
+			case DISCONNECT: {
+				mBus.deregisterBusObject(mService);
+				mBus.disconnect();
+				getLooper().quit();
+				break;
+			}
+			default:
+				break;
+
+			}
+		}
+	}
+
+	class ClientBusHandler extends Handler {
+		BusAttachment mBus;
+		private ProxyBusObject mProxyObj;
+		private PongServiceInterface mPongServiceInterface;
+
+		public ClientBusHandler(Looper looper) {
+			super(looper);
+		}
+
+		@Override
+		public void handleMessage(Message msg) {
+			switch (msg.what) {
+			case ServiceBusHandler.CONNECT: {
+				mBus = new BusAttachment("Pong",
+						BusAttachment.RemoteMessage.Receive);// Receives from
+																// remote
+																// devices.
+
+				Status status = mBus.connect();
+				logStatus("BusAttachment.connect()", status);
+				if (status != Status.OK) {
+					finish();
+					return;
+				}
 
 				// Get a remote object
-				mProxyObj = mBus.getProxyBusObject(SERVICE_NAME, "/",
+				mProxyObj = mBus.getProxyBusObject(
+						ServiceBusHandler.SERVICE_NAME, "/",
 						new Class[] { PongServiceInterface.class });
 				mPongServiceInterface = mProxyObj
 						.getInterface(PongServiceInterface.class);
 
-				Status status = mBus.findName(SERVICE_NAME,
+				status = mBus.findName(ServiceBusHandler.SERVICE_NAME,
 						new FindNameListener() {
 							public void foundName(String name, String guid,
 									String namePrefix, String busAddress) {
@@ -196,7 +251,7 @@ public class PongActivity extends Activity implements Runnable {
 								// We're only looking for one instance, so stop
 								// looking
 								// for the name.//TODO
-								mBus.cancelFindName(SERVICE_NAME);
+								mBus.cancelFindName(ServiceBusHandler.SERVICE_NAME);
 								logStatus("BusAttachment.cancelFindName()",
 										status);
 								if (status != Status.OK) {
@@ -216,29 +271,15 @@ public class PongActivity extends Activity implements Runnable {
 					finish();
 					return;
 				}
-
-				status = mBus.registerBusObject(mService, "/");
-				logStatus("BusAttachment.registerBusObject()", status);
-				if (status != Status.OK) {
-					finish();
-					return;
-				}
-
-				status = mBus.connect(SERVICE_NAME);
-				logStatus("BusAttachment.connect()", status);
-				if (status != Status.OK) {
-					finish();
-					return;
-				}
 				break;
 			}
-			case DISCONNECT: {
-				mBus.deregisterBusObject(mService);
+			case ServiceBusHandler.DISCONNECT: {
+				mProxyObj.disconnect();
 				mBus.disconnect();
-				mBusHandler.getLooper().quit();
+				getLooper().quit();
 				break;
 			}
-			case HELLO: {
+			case ServiceBusHandler.HELLO: {
 				try {
 					mPongServiceInterface.Hello();
 				} catch (BusException ex) {
