@@ -11,8 +11,7 @@ import android.util.Log;
  *         Local implementation of the PongServiceInterface.
  * 
  */
-public class PongService extends Object implements PongServiceInterface,
-		BusObject {
+public class PongService implements PongServiceInterface, BusObject {
 	private static final String TAG = "PongService";
 
 	public void Hello() throws BusException {
