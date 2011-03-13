@@ -292,6 +292,7 @@ public class PongActivity extends Activity implements Runnable {
 					finish();
 					return;
 				}
+
 				break;
 			}
 			case ServiceBusHandler.DISCONNECT: {
