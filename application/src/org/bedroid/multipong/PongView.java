@@ -12,6 +12,7 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -75,6 +76,11 @@ public class PongView extends View {
 				getHeight() - PADDLE_WIDTH_HALF);
 		invalidate();
 		return true;
+	}
+
+	public void setIncomingMove(BallMove incomingMove) {
+		this.incomingMove = incomingMove;
+		Log.d("MultiPong", "New incoming move!");
 	}
 
 	private void init() {
