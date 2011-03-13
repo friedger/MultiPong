@@ -169,67 +169,58 @@ public class PongActivity extends Activity implements Runnable {
 																// remote
 																// devices.
 
-				/*
-				 * Status status = mBus.connect();
-				 * logStatus("BusAttachment.connect()", status); if (status !=
-				 * Status.OK) { finish(); return; }
-				 */
-
-				// Get a remote object
-				mProxyObj = mBus.getProxyBusObject(SERVICE_NAME, "/",
-						new Class[] { PongServiceInterface.class });
-				mPongServiceInterface = mProxyObj
-						.getInterface(PongServiceInterface.class);
-
-				Status status = mBus.findName(SERVICE_NAME,
-						new FindNameListener() {
-							public void foundName(String name, String guid,
-									String namePrefix, String busAddress) {
-
-								Status status = mProxyObj.connect(busAddress);
-								logStatus("ProxyBusObject.connect()", status);
-								if (status != Status.OK) {
-									finish();
-									return;
-								}
-
-								// We're only looking for one instance, so stop
-								// looking
-								// for the name.//TODO
-								mBus.cancelFindName(SERVICE_NAME);
-								logStatus("BusAttachment.cancelFindName()",
-										status);
-								if (status != Status.OK) {
-									finish();
-									return;
-								}
-							}
-
-							public void lostAdvertisedName(String name,
-									String guid, String namePrefix,
-									String busAddr) {
-								// TODO
-							}
-						});
-				logStatus("BusAttachment.findName()", status);
+				Status status = mBus.connect(SERVICE_NAME);
+				logStatus("BusAttachment.connect()", status);
 				if (status != Status.OK) {
 					finish();
 					return;
 				}
-
-				status = mBus.registerBusObject(mService, "/");
+				status = mBus.registerBusObject(mService, "/pong");
 				logStatus("BusAttachment.registerBusObject()", status);
 				if (status != Status.OK) {
 					finish();
 					return;
 				}
 
-				status = mBus.connect(SERVICE_NAME);
-				logStatus("BusAttachment.connect()", status);
+				// Get a remote object
+				mProxyObj = mBus.getProxyBusObject(SERVICE_NAME, "/pong",
+						new Class[] { PongServiceInterface.class });
+				mPongServiceInterface = mProxyObj
+						.getInterface(PongServiceInterface.class);
+
+				status = mBus.findName(SERVICE_NAME, new FindNameListener() {
+					public void foundName(String name, String guid,
+							String namePrefix, String busAddress) {
+
+						Status status = mProxyObj.connect(busAddress);
+						logStatus("ProxyBusObject.connect()", status);
+						if (status != Status.OK) {
+							finish();
+							return;
+						}
+
+						// We're only looking for one instance, so stop
+						// looking
+						// for the name.//TODO
+						mBus.cancelFindName(SERVICE_NAME);
+						logStatus("BusAttachment.cancelFindName()", status);
+						if (status != Status.OK) {
+							finish();
+							return;
+						}
+					}
+
+					public void lostAdvertisedName(String name, String guid,
+							String namePrefix, String busAddr) {
+						// TODO
+					}
+				});
+				logStatus("BusAttachment.findName()", status);
 				if (status != Status.OK) {
 					finish();
 					return;
 				}
+
 				break;
 			}
 			case DISCONNECT: {
