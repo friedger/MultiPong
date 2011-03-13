@@ -341,6 +341,8 @@ public class PongActivity extends Activity implements Runnable {
 
 			case ServiceBusHandler.START_MOVE: {
 				try {
+					mPongView.ballX = 50;
+					mPongView.ballY = -1;
 					mPongSignalInterface.Move(PongView.INITIAL_BALL_MOVE);
 				} catch (BusException ex) {
 					logException("C PongSignalInterface.start_move()", ex);

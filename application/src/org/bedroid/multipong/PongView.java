@@ -21,13 +21,15 @@ import android.view.View;
 
 public class PongView extends View {
 
-	public static final BallMove INITIAL_BALL_MOVE = new BallMove(new Point(0,
-			0), 120, 2);
+	public static final BallMove INITIAL_BALL_MOVE = new BallMove(/*
+																 * new Point(0,
+																 * 0),
+																 */120, 2);
 	private static final int BALL_RADIUS = 5;
 	private static final int PADDLE_WIDTH_HALF = 50;
 	private float paddleX = -1;
-	private float ballX = 50;
-	private float ballY = -1;
+	float ballX = 50;
+	float ballY = -1;
 	private final Rect paddle = new Rect();
 	private final Rect ball = new Rect();
 	private int paddleId = 0;
@@ -102,7 +104,7 @@ public class PongView extends View {
 		timer.schedule(new TimerTask() {
 			@Override
 			public void run() {
-				if (ballY >= getHeight()) {
+				if (ballY >= 480.0/* (float) getHeight() */) {
 					// ballX = 0;
 					// ballY = 0;
 					bounceBall(0);
@@ -114,7 +116,7 @@ public class PongView extends View {
 
 				} else {
 					// ballY = Math.min(ballY + 5, getHeight());
-					double adjacent = 5;
+					double adjacent = 1;// 5
 					if (getBallDirection() == Direction.UP) {
 						adjacent *= -1;
 					}
@@ -122,7 +124,7 @@ public class PongView extends View {
 							* Math.tan(getLocalAngle() % 180);
 					double hypothenuse = Math.sqrt(Math.pow(adjacent, 2)
 							+ Math.pow(opposite, 2));
-					double factor = hypothenuse / 5;
+					double factor = hypothenuse / 1;// 5
 					ballX += opposite / factor;
 					ballY += adjacent / factor;
 				}
@@ -153,7 +155,7 @@ public class PongView extends View {
 		// this is tricky, will continue and calculate again? if we do not
 		// override here already, even while we would still get broadcast
 		// ourselves.
-		incomingMove = new BallMove(origin, outgoingAngle, paddleId);
+		incomingMove = new BallMove(/* origin, */outgoingAngle, paddleId);
 
 		PongActivity.ClientBusHandler networkHandler = ((PongActivity) getContext()).mClientBusHandler;
 		Message msg = networkHandler.obtainMessage(ServiceBusHandler.MOVE,
