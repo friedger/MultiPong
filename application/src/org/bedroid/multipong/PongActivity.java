@@ -32,6 +32,7 @@ public class PongActivity extends Activity implements Runnable {
 
 	private static final int MESSAGE_DISPLAY_HELLO = 1;
 	private static final int MESSAGE_POST_TOAST = 2;
+	public static final int MESSAGE_MOVE_RECEIVED = 3;
 
 	private ServiceBusHandler mServiceBusHandler;
 	private ClientBusHandler mClientBusHandler;
@@ -59,6 +60,9 @@ public class PongActivity extends Activity implements Runnable {
 				Toast.makeText(getApplicationContext(), (String) msg.obj,
 						Toast.LENGTH_LONG).show();
 				break;
+			case MESSAGE_MOVE_RECEIVED:
+				mPongView.incomingMove = (BallMove) msg.obj;
+				break;
 			default:
 				break;
 			}
@@ -66,6 +70,8 @@ public class PongActivity extends Activity implements Runnable {
 	};
 
 	public PongSignalInterface mPongSignalInterface;
+
+	private PongView mPongView;
 
 	/*
 	 * (non-Javadoc)
@@ -108,6 +114,8 @@ public class PongActivity extends Activity implements Runnable {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 
+		mPongView = (PongView) findViewById(R.id.board);
+
 		Log.v(TAG, Pong.class.getSimpleName());
 
 		/*
@@ -149,6 +157,12 @@ public class PongActivity extends Activity implements Runnable {
 				mServiceBusHandler.sendEmptyMessage(ServiceBusHandler.CONNECT);
 			}
 			return true;
+		case R.id.start_move:
+			// Send Start Move
+			Message msg = mClientBusHandler
+					.obtainMessage(ServiceBusHandler.START_MOVE);
+			mClientBusHandler.sendMessage(msg);
+			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
@@ -174,6 +188,7 @@ public class PongActivity extends Activity implements Runnable {
 		public static final int CONNECT = 1;
 		public static final int DISCONNECT = 2;
 		public static final int HELLO = 3;
+		public static final int START_MOVE = 4;
 
 		public ServiceBusHandler(Looper looper) {
 			super(looper);
@@ -237,7 +252,7 @@ public class PongActivity extends Activity implements Runnable {
 				// remote
 				// devices.
 
-				PongSignal mSignalInterface = new PongSignal();
+				PongSignal mSignalInterface = new PongSignal(mHandler);
 				mBus.registerBusObject(mSignalInterface, "/pongsignal");
 
 				Status status = mBus.connect();
@@ -314,12 +329,22 @@ public class PongActivity extends Activity implements Runnable {
 			case ServiceBusHandler.HELLO: {
 				try {
 
-					mPongSignalInterface.Move(5);
+					mPongSignalInterface.Move(PongView.INITIAL_BALL_MOVE);
 
 					String reply = mPongServiceInterface.Hello();
 					Message replyMsg = mHandler.obtainMessage(
 							MESSAGE_DISPLAY_HELLO, reply);
 					mHandler.sendMessage(replyMsg);
+				} catch (BusException ex) {
+					logException("C PongServiceInterface.Hello()", ex);
+				}
+				break;
+			}
+
+			case ServiceBusHandler.START_MOVE: {
+				try {
+
+					mPongSignalInterface.Move(PongView.INITIAL_BALL_MOVE);
 				} catch (BusException ex) {
 					logException("C PongServiceInterface.Hello()", ex);
 				}

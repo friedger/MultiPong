@@ -3,4 +3,5 @@
 
 	<item android:title="Quit" android:id="@+id/quit"></item>
 	<item android:title="Start Game" android:id="@+id/new_game"></item>
+	<item android:title="Start Initial Move" android:id="@+id/start_move"></item>
 </menu>
