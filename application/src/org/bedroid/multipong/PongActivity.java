@@ -103,7 +103,6 @@ public class PongActivity extends Activity implements Runnable {
 		}
 	}
 
-	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -135,7 +134,6 @@ public class PongActivity extends Activity implements Runnable {
 		}
 
 		if (!mFound) {
-
 			/* Start our service. */
 			mServiceBusHandler.sendEmptyMessage(ServiceBusHandler.CONNECT);
 		}
@@ -194,8 +192,8 @@ public class PongActivity extends Activity implements Runnable {
 			case CONNECT: {
 				mBus = new BusAttachment("Pong",
 						BusAttachment.RemoteMessage.Receive);// Receives from
-																// remote
-																// devices.
+				// remote
+				// devices.
 
 				Status status = mBus.registerBusObject(mService, "/");
 				logStatus("S BusAttachment.registerBusObject()", status);
@@ -241,8 +239,8 @@ public class PongActivity extends Activity implements Runnable {
 			case ServiceBusHandler.CONNECT: {
 				mBus = new BusAttachment("Pong",
 						BusAttachment.RemoteMessage.Receive);// Receives from
-																// remote
-																// devices.
+				// remote
+				// devices.
 
 				PongSignal mSignalInterface = new PongSignal();
 				mBus.registerBusObject(mSignalInterface, "/pongsignal");
