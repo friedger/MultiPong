@@ -9,7 +9,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
-import android.graphics.PointF;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.util.AttributeSet;
@@ -93,15 +92,11 @@ public class PongView extends View {
 			@Override
 			public void run() {
 				if (ballY >= getHeight()) {
-					ballY = 0;
-					ballX = 0;
+					// ballX = 0;
+					// ballY = 0;
+					bounceBall(0);
 				} else if (ball.intersect(paddle)) {
-					PointF impact = new PointF(ball.left + (BALL_RADIUS / 2f),
-							ball.bottom);
-					int localAngle = getLocalAngle();
-					int outgoingAngle = 180 - localAngle;
-					Point origin = new Point((int) ballX, (int) ballY);
-					incomingMove = new BallMove(origin, outgoingAngle, paddleId);
+					bounceBall(0);
 				}
 
 				if (getBallDirection() == Direction.SIDEWAYS) {
@@ -137,6 +132,13 @@ public class PongView extends View {
 
 	private int getLocalAngle() {
 		return ((paddleId * 90) + incomingMove.getGlobalAngle()) % 360;
+	}
+
+	private void bounceBall(int skew) {
+		int localAngle = getLocalAngle();
+		int outgoingAngle = 180 - localAngle;
+		Point origin = new Point((int) ballX, (int) ballY);
+		incomingMove = new BallMove(origin, outgoingAngle, paddleId);
 	}
 
 	private static enum Direction {
